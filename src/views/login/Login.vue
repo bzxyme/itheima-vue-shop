@@ -2,26 +2,118 @@
 <template>
   <div class="login_container">
     <div class="login_box">
+      <!-- 头像区域 -->
       <div class="avatar_box">
         <img
           src="https://tva1.sinaimg.cn/large/41e64f3aly1gpv0yyog2lj20u00u0e81.jpg"
           alt=""
         />
       </div>
+      <!-- 表单区域 -->
+      <el-form
+        ref="loginFormRef"
+        label-width="0px"
+        class="login_form"
+        :model="loginForm"
+        :rules="loginFormRules"
+      >
+        <!-- 用户名 -->
+        <el-form-item prop="userNmae">
+          <el-input
+            prefix-icon="iconfont icon-user"
+            v-model="loginForm.userNmae"
+          ></el-input>
+        </el-form-item>
+        <!-- 密码 -->
+        <el-form-item prop="passWord">
+          <el-input
+            prefix-icon="iconfont icon-3702mima"
+            v-model="loginForm.passWord"
+            type="password"
+          ></el-input>
+        </el-form-item>
+        <!-- 按钮 -->
+        <el-form-item class="btns">
+          <el-button type="primary" @click="login">登录</el-button>
+          <el-button type="info" @click="resetLoginForm">重置</el-button>
+        </el-form-item>
+      </el-form>
     </div>
   </div>
 </template>
 
 <script>
 //import x from ''
+import { formLogin } from "@/network/login.js";
+
 export default {
   name: "Login",
   components: {},
   data() {
-    return {};
+    return {
+      //登录表单的数据绑定对象
+      loginForm: {
+        userNmae: "admin",
+        passWord: "123456",
+      },
+      //表单的验证规则对象
+      loginFormRules: {
+        //验证用户名是否合法
+        userNmae: [
+          { required: true, message: "请输入登录用户名", trigger: "blur" },
+          {
+            min: 3,
+            max: 10,
+            message: "长度在 3 到 10 个字符",
+            trigger: "blur",
+          },
+        ],
+        // 验证密码是否合法
+        passWord: [
+          { required: true, message: "请输入登录密码", trigger: "blur" },
+          {
+            min: 6,
+            max: 15,
+            message: "长度在 6 到 15 个字符",
+            trigger: "blur",
+          },
+        ],
+      },
+    };
   },
   computed: {},
-  methods: {},
+  methods: {
+    // 登录//
+    login() {
+      //validate 表单预验证
+      this.$refs.loginFormRef.validate((val) => {
+        // console.log(val);
+        if (!val) return console.log("输入有误");
+
+        // 发送post请求
+        formLogin(this.loginForm.userNmae, this.loginForm.passWord)
+          .then((result) => {
+            // console.log();
+            // console.log(result);
+            const { data: res } = result;
+            // console.log(res);
+            //弹窗提示
+            if (result.meta.status !== 200)
+              return this.$msg.error({ showClose: true, message: "登陆失败" });
+            this.$msg.success({ showClose: true, message: "登录成功" });
+            //token只在网站打开期间有效，将它保存到sessionStorage
+            window.sessionStorage.setItem("token", res.token);
+            //同时跳转/home页
+            this.$router.push("/home");
+          })
+          .catch((err) => {});
+      });
+    },
+    //重置表单
+    resetLoginForm() {
+      this.$refs.loginFormRef.resetFields();
+    },
+  },
 };
 </script>
 
@@ -61,5 +153,16 @@ export default {
 
   border-radius: 50%;
   background-color: #eee;
+}
+.login_form {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+.btns {
+  display: flex;
+  justify-content: flex-end;
 }
 </style>
