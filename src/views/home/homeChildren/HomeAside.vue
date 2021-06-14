@@ -10,9 +10,15 @@
       unique-opened
       :collapse="isCollapse"
       :collapse-transition="false"
+      :router="true"
+      :default-active="$route.path"
     >
       <!-- 一级菜单 -->
-      <el-submenu :index="'' + item.id" v-for="item in menuList" :key="item.id">
+      <el-submenu
+        :index="'/' + item.path"
+        v-for="item in menuList"
+        :key="item.id"
+      >
         <!-- 一级菜单模板区域 -->
         <template slot="title">
           <!-- 图标 -->
@@ -22,7 +28,7 @@
         </template>
         <!-- 二级菜单 -->
         <el-menu-item
-          :index="subItem.id + ''"
+          :index="'/' + subItem.path"
           v-for="subItem in item.children"
           :key="subItem.id"
         >

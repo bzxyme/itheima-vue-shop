@@ -15,19 +15,22 @@
       <!-- 侧边栏 -->
       <home-aside :menuList="menuList" />
       <!-- 右侧内容 -->
-      <el-main>Main</el-main>
+      <el-main>
+        <home-main />
+      </el-main>
     </el-container>
   </el-container>
 </template>
 
 <script>
 import HomeAside from './homeChildren/HomeAside.vue'
+import HomeMain from './homeChildren/HomeMain.vue'
 
 import { getHomeAside } from '@/network/home.js'
 
 export default {
   name: 'Home',
-  components: { HomeAside },
+  components: { HomeAside, HomeMain },
   created() {
     getHomeAside()
       .then(result => {
@@ -36,7 +39,7 @@ export default {
         // console.log(data)
         if (meta.status !== 200) return this.$msg.error(meta.msg)
         this.menuList = data
-        console.log(this.menuList)
+        // console.log(this.menuList)
       })
       .catch(err => {})
   },
