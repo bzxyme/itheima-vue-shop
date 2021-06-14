@@ -148,7 +148,7 @@ export default {
           if (meta.status !== 200) return this.$msg.error(meta.msg)
           this.userList = data.users
           this.total = data.total
-          this.queryInfo.pagenum = 1
+          // this.queryInfo.pagenum = 1
         })
         .catch(err => {})
     },
