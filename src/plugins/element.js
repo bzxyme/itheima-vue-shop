@@ -21,7 +21,9 @@ import {
   Table,
   TableColumn,
   Switch,
-  Tooltip
+  Tooltip,
+  Pagination,
+  Dialog
 } from 'element-ui'
 
 Vue.use(Button)
@@ -45,5 +47,7 @@ Vue.use(Table)
 Vue.use(TableColumn)
 Vue.use(Switch)
 Vue.use(Tooltip)
+Vue.use(Pagination)
+Vue.use(Dialog)
 // 挂在全局属性
 Vue.prototype.$msg = Message
