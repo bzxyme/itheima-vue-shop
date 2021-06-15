@@ -20,23 +20,11 @@
         </el-col>
         <!-- 按钮 -->
         <el-col :span="4">
-          <el-button type="primary" @click="setDialogVisible(true)"
+          <el-button type="primary" @click="setAddDialogVisible(true)"
             >添加用户</el-button
           >
         </el-col>
       </el-row>
-      <!-- 添加用户的对话框 -->
-      <el-dialog title="添加用户" :visible.sync="dialogVisible" width="50%">
-        <!-- 内容主题 -->
-        <span>这是一段信息</span>
-        <!-- 底部区域 -->
-        <span slot="footer" class="dialog-footer">
-          <el-button @click="setDialogVisible(false)">取 消</el-button>
-          <el-button type="primary" @click="setDialogVisible(false)"
-            >确 定</el-button
-          >
-        </span>
-      </el-dialog>
     </template>
     <!-- 用户列表区域 -->
     <template v-slot:center>
@@ -56,11 +44,13 @@
           </template>
         </el-table-column>
         <el-table-column label="操作" width="180">
-          <template>
+          <template v-slot="scope">
+            <!-- 修改按钮 -->
             <el-button
               type="primary"
               icon="el-icon-edit"
               size="mini"
+              @click="setEditDialogVisible(true, scope.row.id)"
             ></el-button>
             <el-button
               type="danger"
@@ -96,13 +86,83 @@
       >
       </el-pagination>
     </template>
+
+    <!-- 添加用户的对话框 -->
+    <el-dialog
+      title="添加用户"
+      :visible.sync="addDialogVisible"
+      width="50%"
+      @close="dialogClose"
+    >
+      <!-- 内容主题 -->
+      <el-form
+        :model="addForm"
+        :rules="addFormRules"
+        ref="addFormRef"
+        label-width="70px"
+      >
+        <el-form-item label="用户名" prop="userName">
+          <el-input v-model="addForm.userName"></el-input>
+        </el-form-item>
+        <el-form-item label="密码" prop="passWd">
+          <el-input v-model="addForm.passWd"></el-input>
+        </el-form-item>
+        <el-form-item label="邮箱" prop="email">
+          <el-input v-model="addForm.email"></el-input>
+        </el-form-item>
+        <el-form-item label="手机" prop="mobile">
+          <el-input v-model="addForm.mobile"></el-input>
+        </el-form-item>
+      </el-form>
+      <!-- 底部区域 -->
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="setAddDialogVisible(false)">取 消</el-button>
+        <el-button type="primary" @click="addUser">确 定</el-button>
+      </span>
+    </el-dialog>
+    <!-- 修改用户的对话框 -->
+    <el-dialog
+      title="修改用户信息"
+      :visible.sync="editDialogVisible"
+      width="50%"
+      @close="editDialogClose"
+    >
+      <!-- 内容主题 -->
+      <el-form
+        :model="editForm"
+        :rules="addFormRules"
+        ref="editFormRef"
+        label-width="70px"
+      >
+        <el-form-item label="用户名">
+          <el-input v-model="editForm.username" disabled></el-input>
+        </el-form-item>
+        <el-form-item label="邮箱" prop="email">
+          <el-input v-model="editForm.email"></el-input>
+        </el-form-item>
+        <el-form-item label="手机" prop="mobile">
+          <el-input v-model="editForm.mobile"></el-input>
+        </el-form-item>
+      </el-form>
+      <!-- 底部区域 -->
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="setEditDialogVisible(false)">取 消</el-button>
+        <el-button type="primary" @click="editUser">确 定</el-button>
+      </span>
+    </el-dialog>
   </home-main-template>
 </template>
 
 <script>
 import HomeMainTemplate from '@/components/content/HomeMainTemplate.vue'
 
-import { getUsersList, setUsersStatus } from '@/network/user'
+import {
+  getUsersList,
+  setUsersStatus,
+  addUser,
+  getIdInfo,
+  setUserInfo
+} from '@/network/user'
 
 //import x from ''
 export default {
@@ -114,6 +174,24 @@ export default {
     this.getUserList()
   },
   data() {
+    // 自定义校验规则
+    //验证邮箱
+
+    // value待校验的值
+    let checkEmail = (rule, value, callback) => {
+      // 验证邮箱正则
+      const reg = /^([a-zA-Z]|[0-9])(\w|\-)+@[a-zA-Z0-9]+\.([a-zA-Z]{2,4})$/
+      if (reg.test(value)) return callback()
+
+      callback(new Error('请输入合法邮箱'))
+    }
+    //验证手机
+    let checkMobile = (rule, value, callback) => {
+      const reg = /^1[3|4|5|7|8][0-9]{9}$/
+      if (reg.test(value)) return callback()
+      callback(new Error('请输入合法手机号'))
+    }
+
     return {
       breadcrumb: ['用户管理', '用户列表'],
       // 用户列表参数
@@ -128,7 +206,44 @@ export default {
       total: 0,
       // titleList: ['序号', '姓名', '邮箱', '电话', '角色', '状态', '操作']
       // 控制添加用户对话框的显示隐藏
-      dialogVisible: false
+      addDialogVisible: false,
+
+      // 添加用户的表单数据
+      addForm: {
+        userName: '',
+        passWd: '',
+        email: '',
+        mobile: ''
+      },
+      // 添加表单的验证规则对象
+      addFormRules: {
+        userName: [
+          { required: true, message: '请输入用户名', trigger: 'blur' },
+          { min: 3, max: 10, message: '长度在 3 到 10 个字符', trigger: 'blur' }
+        ],
+        passWd: [
+          { required: true, message: '请输入密码', trigger: 'blur' },
+          { min: 6, max: 15, message: '长度在 6 到 15 个字符', trigger: 'blur' }
+        ],
+        email: [
+          { required: true, message: '请输入邮箱地址', trigger: 'blur' },
+          {
+            validator: checkEmail,
+            trigger: 'blur'
+          }
+        ],
+        mobile: [
+          { required: true, message: '请输入手机号', trigger: 'blur' },
+          {
+            validator: checkMobile,
+            trigger: 'blur'
+          }
+        ]
+      },
+      // 控制修改用户对话框的显示隐藏
+      editDialogVisible: false,
+      // 查询用户信息列表
+      editForm: {}
     }
   },
   computed: {},
@@ -143,7 +258,7 @@ export default {
         .then(result => {
           // console.log(result)
           const { data, meta } = result
-          console.log(data)
+          // console.log(data)
           // console.log(meta)
           if (meta.status !== 200) return this.$msg.error(meta.msg)
           this.userList = data.users
@@ -177,8 +292,83 @@ export default {
         .catch(err => {})
     },
     // 设置添加用户对话框显示隐藏
-    setDialogVisible(val) {
-      this.dialogVisible = val
+    setAddDialogVisible(val) {
+      this.addDialogVisible = val
+    },
+    //监听添加用户关闭
+    dialogClose() {
+      //表单重置
+      this.$refs.addFormRef.resetFields()
+    },
+    // 添加用户
+    addUser() {
+      // 表单预验证
+      this.$refs.addFormRef.validate(val => {
+        // console.log(val)
+        if (!val) return
+
+        console.log(this.addForm.userName)
+        //发起添加用户网络请求
+        addUser(
+          this.addForm.userName,
+          this.addForm.passWd,
+          this.addForm.email,
+          this.addForm.mobile
+        )
+          .then(result => {
+            console.log(result)
+            const { data, meta } = result
+
+            if (meta.status !== 201) {
+              return this.$msg.error(meta.msg)
+            }
+            this.$msg.success(meta.msg)
+            //隐藏添加用户对话框
+            this.setAddDialogVisible(false)
+            // 刷新用户列表
+            this.getUserList()
+          })
+          .catch(err => {})
+      })
+    },
+    // 设置修改用户对话框显示隐藏
+    setEditDialogVisible(val, id) {
+      if (id) {
+        // console.log(id)
+        getIdInfo(id)
+          .then(result => {
+            // console.log(result)
+            const { data, meta } = result
+            // console.log(data)
+            // console.log(meta)
+
+            if (meta.status !== 200) return this.$msg.error(mete.msg)
+
+            this.editForm = data
+          })
+          .catch(err => {})
+      }
+      this.editDialogVisible = val
+    },
+    //修改用户对话框关闭
+    editDialogClose() {
+      this.$refs.editFormRef.resetFields()
+    },
+    //修改用户对话框确定后提交
+    editUser() {
+      // 表单预验证
+      this.$refs.editFormRef.validate(val => {
+        // console.log(val)
+        if (!val) return
+
+        //发起修改用户信息请求
+        setUserInfo(parseInt(this.editForm.username))
+          .then(result => {
+            console.log(typeof(this.editForm.username));
+            console.log(result)
+          })
+          .catch(err => {})
+      })
     }
   }
 }

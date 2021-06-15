@@ -13,6 +13,7 @@
       <slot name="top" />
       <slot name="center" />
       <slot name="bottom" />
+      <slot />
     </el-card>
   </div>
 </template>
