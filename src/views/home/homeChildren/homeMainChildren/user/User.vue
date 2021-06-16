@@ -52,10 +52,12 @@
               size="mini"
               @click="setEditDialogVisible(true, scope.row.id)"
             ></el-button>
+            <!-- 删除用户 -->
             <el-button
               type="danger"
               icon="el-icon-delete"
               size="mini"
+              @click="removeUserById(scope.row.id)"
             ></el-button>
             <el-tooltip
               effect="dark"
@@ -161,7 +163,8 @@ import {
   setUsersStatus,
   addUser,
   getIdInfo,
-  setUserInfo
+  setUserInfo,
+  removeUserInfo
 } from '@/network/user'
 
 //import x from ''
@@ -362,13 +365,57 @@ export default {
         if (!val) return
 
         //发起修改用户信息请求
-        setUserInfo(parseInt(this.editForm.username))
+        setUserInfo(this.editForm.id, this.editForm.email, this.editForm.mobile)
           .then(result => {
-            console.log(typeof(this.editForm.username));
             console.log(result)
+            const { data, meta } = result
+            if (meta.status !== 200) return this.$msg.error(meta.msg)
+
+            this.$msg.success(meta.msg)
+
+            this.getUserList()
+            this.setEditDialogVisible(false)
           })
           .catch(err => {})
       })
+    },
+    //监听删除单击
+    removeUserById(id) {
+      // console.log(id);
+
+      const conFirmResult = this.$confirm(
+        '此操作将永久删除该用户, 是否继续?',
+        '提示',
+        {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning',
+          center: true
+        }
+      )
+        .then(() => {
+          removeUserInfo(id)
+            .then(result => {
+              console.log(result)
+              const { data, meta } = result
+              if (meta.status !== 200) return this.$msg.error('删除失败')
+
+              this.getUserList()
+            })
+            .catch(err => {})
+          this.$msg({
+            type: 'success',
+            message: '删除成功!'
+          })
+        })
+        .catch(() => {
+          this.$msg({
+            type: 'info',
+            message: '已取消删除'
+          })
+        })
+
+      console.log(conFirmResult)
     }
   }
 }

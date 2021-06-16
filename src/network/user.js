@@ -43,10 +43,22 @@ export function getIdInfo(id) {
 }
 
 //修改用户数据
-export function setUserInfo(id) {
+export function setUserInfo(id, email, mobile) {
   let uid = Number(id)
   return request({
     method: 'put',
-    url: `users/${uid}`
+    url: `users/${id}`,
+    data: {
+      email,
+      mobile
+    }
+  })
+}
+
+//删除用户信息
+export function removeUserInfo(id){
+  return request({
+    method:'delete',
+    url:`users/${id}`
   })
 }
