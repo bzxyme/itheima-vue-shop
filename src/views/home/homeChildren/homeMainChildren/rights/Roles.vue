@@ -49,7 +49,13 @@
                     <i class="el-icon-caret-right"></i>
                   </el-col>
                   <el-col :span="18">
-                    <el-tag type="warning" v-for="item3 in item2.children" :key="item3.id" closable @close="removeRightById(item3.id)">
+                    <el-tag
+                      type="warning"
+                      v-for="item3 in item2.children"
+                      :key="item3.id"
+                      closable
+                      @close="removeRightById(scope.row, item3.id)"
+                    >
                       {{ item3.authName }}
                     </el-tag>
                   </el-col>
@@ -83,7 +89,7 @@
 <script>
 import HomeMainTemplate from '@/components/content/HomeMainTemplate.vue'
 
-import { getRolesList } from '@/network/roles'
+import { getRolesList, removeUserRoles } from '@/network/roles'
 
 export default {
   name: 'Roles',
@@ -103,6 +109,7 @@ export default {
   },
   computed: {},
   methods: {
+    //请求数据
     requestRolesList() {
       getRolesList()
         .then(result => {
@@ -113,9 +120,47 @@ export default {
           if (meta.status !== 200) return this.$msg.error(meta.msg)
 
           this.rolesList = data
-          console.log(this.rolesList)
+          // console.log(this.rolesList)
         })
         .catch(err => {})
+    },
+
+    //监听删除权限
+    removeRightById(row, rolesId) {
+      console.log(row)
+      // console.log(id)
+      // console.log(rolesId);
+      this.$confirm('此操作将永久删除该权限, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      })
+        .then(() => {
+          //请求删除权限
+          removeUserRoles(row.id, rolesId)
+            .then(result => {
+              console.log(result)
+              const { data, meta } = result
+              if (meta.status !== 200) return this.$msg.error(meta.msg)
+
+              this.$msg.success(meta.msg)
+              // this.requestRolesList()
+              //数据双向绑定,局部更新数据即可无需全部重新请求数据
+              row.children = data
+            })
+            .catch(err => {})
+
+          this.$msg({
+            type: 'success',
+            message: '删除成功!'
+          })
+        })
+        .catch(() => {
+          this.$msg({
+            type: 'info',
+            message: '已取消删除'
+          })
+        })
     }
   }
 }
@@ -133,6 +178,6 @@ export default {
 }
 .el-row {
   display: flex;
-  align-items: center
+  align-items: center;
 }
 </style>

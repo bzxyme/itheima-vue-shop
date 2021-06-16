@@ -6,3 +6,11 @@ export function getRolesList() {
     url: '/roles'
   })
 }
+
+//删除用户权限
+export function removeUserRoles(roleId,rolesId){
+  return request({
+    method:'delete',
+    url:`roles/${roleId}/rights/${rolesId}`
+  })
+}
