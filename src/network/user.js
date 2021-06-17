@@ -62,3 +62,23 @@ export function removeUserInfo(id){
     url:`users/${id}`
   })
 }
+
+
+//角色列表
+export function getRoleList(){
+  return request({
+    url:'/roles'
+  })
+}
+
+//分配新角色
+export function setNewRole(id,rid){
+  return request({
+    method:'put',
+    url:`users/${id}/role`,
+    data:{
+      rid
+    }
+  })
+
+}
