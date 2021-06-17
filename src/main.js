@@ -9,11 +9,11 @@ import './assets/css/global.css'
 //导入字体图标
 import './assets/fonts/iconfont.css'
 //导入table样式
-import TreeTable from 'vue-table-with-tree-grid'
+// import TreeTable from 'vue-table-with-tree-grid'
 
 Vue.config.productionTip = false
 
-vue.component('tree-table', TreeTable)
+// vue.component('tree-table', TreeTable)
 
 new Vue({
   router,
