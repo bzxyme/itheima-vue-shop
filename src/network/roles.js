@@ -8,9 +8,27 @@ export function getRolesList() {
 }
 
 //删除用户权限
-export function removeUserRoles(roleId,rolesId){
+export function removeUserRoles(roleId, rolesId) {
   return request({
-    method:'delete',
-    url:`roles/${roleId}/rights/${rolesId}`
+    method: 'delete',
+    url: `roles/${roleId}/rights/${rolesId}`
+  })
+}
+
+//获取所有权限信息
+export function getRightAll() {
+  return request({
+    url: `rights/tree`
+  })
+}
+
+//角色授权
+export function setUserRights(roleId, rids) {
+  return request({
+    method: 'post',
+    url: `roles/${roleId}/rights`,
+    data: {
+      rids
+    }
   })
 }
