@@ -60,7 +60,11 @@ https://github.com/Naccl/vue-shop/blob/master/src/components/goods/Cate.vue
           <el-button type="primary" icon="el-icon-edit" size="mini"
             >编辑</el-button
           >
-          <el-button type="danger" icon="el-icon-delete" size="mini"
+          <el-button
+            type="danger"
+            icon="el-icon-delete"
+            size="mini"
+            @click="removeCateList"
             >删除</el-button
           >
         </el-table-column>
@@ -85,8 +89,14 @@ https://github.com/Naccl/vue-shop/blob/master/src/components/goods/Cate.vue
     </template>
 
     <!-- 添加分类对话框 -->
-    <el-dialog title="添加分类" :visible.sync="editDialogVisible" width="50%">
+    <el-dialog
+      title="添加分类"
+      :visible.sync="editDialogVisible"
+      width="50%"
+      @close="addCateDialogCloser"
+    >
       <!-- 对话框内容 -->
+
       <el-form
         :model="addCateForm"
         :rules="addCateFormRules"
@@ -98,14 +108,21 @@ https://github.com/Naccl/vue-shop/blob/master/src/components/goods/Cate.vue
           <el-input v-model="addCateForm.cat_name"></el-input>
         </el-form-item>
         <el-form-item label="父级分类: ">
-          <el-input v-model="addCateForm.cat_level"></el-input>
+          <!-- options指定数据源 -->
+          <!-- props指定配置对象 -->
+          <!-- change发生改变触发函数 -->
+          <el-cascader
+            v-model="selectedKeys"
+            :options="parantCateList"
+            :props="cascaderProps"
+            @change="parentCateChange"
+            clearable
+          ></el-cascader>
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button @click="editDialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="editDialogVisible = false"
-          >确 定</el-button
-        >
+        <el-button type="primary" @click="addCateSort">确 定</el-button>
       </span>
     </el-dialog>
   </home-main-template>
@@ -114,7 +131,7 @@ https://github.com/Naccl/vue-shop/blob/master/src/components/goods/Cate.vue
 <script>
 import HomeMainTemplate from '@/components/content/HomeMainTemplate.vue'
 
-import { getCateList } from '@/network/cate.js'
+import { getCateList, getParentCateList, addCateSort } from '@/network/cate.js'
 
 //import x from ''
 export default {
@@ -141,16 +158,31 @@ export default {
         // 将要添加的分类名称
         cat_name: '',
         // 父级分类id
-        cat_pid: null,
-        // 分类层级
-        cat_level: null
+        cat_pid: 0,
+        // 当前分类层级
+        cat_level: 0
       },
       // 添加分类对话框验证规则对象
       addCateFormRules: {
         cat_name: [
           { required: true, message: '请输入分类名称', trigger: 'blur' }
         ]
-      }
+      },
+      // 父级分类列表
+      parantCateList: [],
+      // 设置级联选择器的配置对象
+      cascaderProps: {
+        //连接单独的id
+        value: 'cat_id',
+        //页面显示
+        label: 'cat_name',
+        //子集
+        children: 'children',
+        //是否可以选中一级分类
+        checkStrictly: 'true'
+      },
+      //选中后的父级分类
+      selectedKeys: []
     }
   },
   created() {
@@ -172,11 +204,11 @@ export default {
           //   console.log(result)
           //   console.log(data)
           //   console.log(meta)
-          if (meta.status !== 200) return this.$msg.error(meta.status)
+          if (meta.status !== 200) return this.$msg.error(meta.msg)
 
           this.cateList = data.result
           this.total = data.total
-          console.log(this.cateList)
+          // console.log(this.cateList)
         })
         .catch(err => {})
     },
@@ -192,10 +224,110 @@ export default {
     },
     // 显示添加分类对话框
     showEditDialogVisible() {
+      // 获取父级分类
+      this.requestCateParentList()
+      // 展示对话框
       this.editDialogVisible = true
+    },
+    //请求腹肌分类列表数据
+    requestCateParentList() {
+      getParentCateList(2)
+        .then(res => {
+          const { data, meta } = res
+          //   console.log(res);
+
+          //   console.log(result)
+          // console.log(data)
+          // console.log(meta)
+          if (meta.status !== 200) return this.$msg.error('获取父级分类失败')
+
+          this.parantCateList = data
+        })
+        .catch(err => {})
+    },
+    //父级分类选择项改变触发
+    parentCateChange() {
+      // console.log(this.selectedKeys)
+      if (this.selectedKeys.length > 0) {
+        // 为父级分类id赋值
+        this.addCateForm.cat_pid = this.selectedKeys[
+          this.selectedKeys.length - 1
+        ]
+        // console.log(this.addCateForm.cat_pid)
+        // 当前分类层级赋值
+        this.addCateForm.cat_level = this.selectedKeys.length
+      } else {
+        // 为父级分类id赋值
+        this.addCateForm.cat_pid = 0
+        // console.log(this.addCateForm.cat_pid)
+        // 当前分类层级赋值
+        this.addCateForm.cat_level = 0
+      }
+    },
+    //添加分类对话框单击确定
+    addCateSort() {
+      // console.log(this.addCateForm)
+      //表单与验证
+      this.$refs.addCateFormRef.validate(val => {
+        // console.log(val)
+        if (!val) return this.$msg.error('请输入信息')
+
+        addCateSort(
+          this.addCateForm.cat_pid,
+          this.addCateForm.cat_name,
+          this.addCateForm.cat_level
+        )
+          .then(result => {
+            const { data, meta } = result
+            //   console.log(res);
+
+            //   console.log(result)
+            //   console.log(data)
+            //   console.log(meta)
+            if (meta.status !== 201) return this.$msg.error(meta.msg)
+
+            this.$msg.success(meta.msg)
+            // 刷新数据列表
+            this.requestCateList()
+            //隐藏对话框
+            this.editDialogVisible = false
+          })
+          .catch(err => {})
+      })
+    },
+    // 监听对话框关闭
+    addCateDialogCloser() {
+      this.$refs.addCateFormRef.resetFields()
+      this.selectedKeys = []
+      this.addCateForm.cat_pid = 0
+      this.addCateForm.cat_level = 0
+    },
+    //删除分类
+    removeCateList() {
+      this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      })
+        .then(() => {
+          this.$message({
+            type: 'success',
+            message: '删除成功!'
+          })
+        })
+        .catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          })
+        })
     }
   }
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+.el-cascader {
+  width: 100%;
+}
+</style>
