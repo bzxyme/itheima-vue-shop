@@ -57,16 +57,18 @@ https://github.com/Naccl/vue-shop/blob/master/src/components/goods/Cate.vue
           </template>
         </el-table-column>
         <el-table-column label="操作">
-          <el-button type="primary" icon="el-icon-edit" size="mini"
-            >编辑</el-button
-          >
-          <el-button
-            type="danger"
-            icon="el-icon-delete"
-            size="mini"
-            @click="removeCateList"
-            >删除</el-button
-          >
+          <template v-slot="scope">
+            <el-button type="primary" icon="el-icon-edit" size="mini"
+              >编辑</el-button
+            >
+            <el-button
+              type="danger"
+              icon="el-icon-delete"
+              size="mini"
+              @click="removeCateList(scope.row.cat_id)"
+              >删除</el-button
+            >
+          </template>
         </el-table-column>
       </el-table>
     </template>
@@ -131,7 +133,12 @@ https://github.com/Naccl/vue-shop/blob/master/src/components/goods/Cate.vue
 <script>
 import HomeMainTemplate from '@/components/content/HomeMainTemplate.vue'
 
-import { getCateList, getParentCateList, addCateSort } from '@/network/cate.js'
+import {
+  getCateList,
+  getParentCateList,
+  addCateSort,
+  removeCateSort
+} from '@/network/cate.js'
 
 //import x from ''
 export default {
@@ -303,20 +310,32 @@ export default {
       this.addCateForm.cat_level = 0
     },
     //删除分类
-    removeCateList() {
+    removeCateList(id) {
       this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       })
         .then(() => {
-          this.$message({
+          removeCateSort(id)
+            .then(result => {
+              const { data, meta } = result
+              // console.log(data)
+              // console.log(meta)
+
+              if (meta.status !== 200) return this.$msg.error(meta.msg)
+
+              this.requestCateList()
+            })
+            .catch(err => {})
+
+          this.$msg({
             type: 'success',
             message: '删除成功!'
           })
         })
         .catch(() => {
-          this.$message({
+          this.$msg({
             type: 'info',
             message: '已取消删除'
           })
