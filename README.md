@@ -51,3 +51,15 @@ git checkout master
 ```git
 git merge xxxx
 ```
+
+### 添加远程仓库
+
+```git
+git remote add 别名 仓库地址
+```
+
+### 更新远程仓库地址
+
+```git
+git remote set-url 别名 仓库地址
+```
