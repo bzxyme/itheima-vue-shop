@@ -63,3 +63,6 @@ git remote add 别名 仓库地址
 ```git
 git remote set-url 别名 仓库地址
 ```
+# 发布时使用的插件/依赖
+
+[nprogress](https://github.com/rstacruz/nprogress)  [babel-plugin-transform-remove-console](https://github.com/babel/minify#readme)   
