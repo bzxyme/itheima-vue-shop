@@ -1,20 +1,11 @@
-import Vue from 'vue'
 import App from './App.vue'
 import router from './router'
 
-//导入element-ui
-import './plugins/element.js'
 //导入全局样式表
 import './assets/css/global.css'
+
 //导入字体图标
 import './assets/fonts/iconfont.css'
-// 导入富文本编辑器
-import VueQuillEditor from 'vue-quill-editor'
-
-// 导入富文本编辑器对应样式
-import 'quill/dist/quill.core.css' // import styles
-import 'quill/dist/quill.snow.css' // for snow theme
-import 'quill/dist/quill.bubble.css' // for bubble theme
 
 Vue.config.productionTip = false
 
@@ -32,9 +23,6 @@ Vue.filter('dateFormat', function(originVal) {
 
   return `${y}-${m}-${d} ${hh}:${mm}:${ss}`
 })
-
-//符文布注册全局
-Vue.use(VueQuillEditor /* { default global options } */)
 
 new Vue({
   router,

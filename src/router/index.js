@@ -1,6 +1,3 @@
-import Vue from 'vue'
-import VueRouter from 'vue-router'
-
 //懒加载
 const Login = () => import('@/views/login/Login')
 const Home = () => import('@/views/home/Home')
@@ -23,8 +20,6 @@ const Orders = () =>
   import('@/views/home/homeChildren/homeMainChildren/order/Order')
 const Report = () =>
   import('@/views/home/homeChildren/homeMainChildren/report/Report')
-
-Vue.use(VueRouter)
 
 const routes = [
   {

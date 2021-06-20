@@ -1,9 +1,5 @@
 import axios from 'axios'
 
-// 导入NProgress包对应js和css
-import NProgress from 'nprogress'
-import 'nprogress/nprogress.css'
-
 export function request(config) {
   // 1.创建axios的实例
   const instance = axios.create({
